@@ -173,6 +173,13 @@ class AchievementNotifier extends AsyncNotifier<List<Achievement>> {
         case 'consistency_master':
           shouldUnlock = consistency >= 0.8;
           break;
+        case 'hidden_beast':
+          shouldUnlock = history.any((session) => session.workout.exercises.any((ex) => ex.sets.any((s) => s.isCompleted && s.weight >= 100.0)));
+          break;
+        case 'seasonal_summer_2026':
+          final juneWorkouts = history.where((s) => s.startTime.year == 2026 && s.startTime.month == 6).length;
+          shouldUnlock = juneWorkouts >= 15;
+          break;
       }
 
       if (shouldUnlock) {

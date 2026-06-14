@@ -86,13 +86,15 @@ class LocalGoalRepository implements GoalRepository {
 
   List<Achievement> _getDefaultAchievements() {
     return [
-      Achievement(id: 'first_workout', title: 'First Workout', description: 'Complete your first session', iconData: Icons.fitness_center.codePoint),
-      Achievement(id: 'streak_7', title: '7 Day Streak', description: 'Train 7 days in a row', iconData: Icons.local_fire_department.codePoint),
-      Achievement(id: 'sets_50', title: '50 Sets', description: 'Log 50 total sets', iconData: Icons.layers.codePoint),
-      Achievement(id: 'sessions_100', title: '100 Sessions', description: 'Log 100 total sessions', iconData: Icons.emoji_events.codePoint),
-      Achievement(id: 'first_program', title: 'First Program', description: 'Start a training program', iconData: Icons.assignment.codePoint),
-      Achievement(id: 'pr_10', title: '10 Personal Records', description: 'Break 10 personal records', iconData: Icons.star.codePoint),
-      Achievement(id: 'consistency_master', title: 'Consistency Master', description: 'Maintain a 80% monthly score', iconData: Icons.verified.codePoint),
+      Achievement(id: 'first_workout', title: 'First Workout', description: 'Complete your first session', iconData: Icons.fitness_center.codePoint, tier: 'bronze'),
+      Achievement(id: 'streak_7', title: '7 Day Streak', description: 'Train 7 days in a row', iconData: Icons.local_fire_department.codePoint, tier: 'silver'),
+      Achievement(id: 'sets_50', title: '50 Sets', description: 'Log 50 total sets', iconData: Icons.layers.codePoint, tier: 'silver'),
+      Achievement(id: 'sessions_100', title: '100 Sessions', description: 'Log 100 total sessions', iconData: Icons.emoji_events.codePoint, tier: 'gold'),
+      Achievement(id: 'first_program', title: 'First Program', description: 'Start a training program', iconData: Icons.assignment.codePoint, tier: 'bronze'),
+      Achievement(id: 'pr_10', title: '10 Personal Records', description: 'Break 10 personal records', iconData: Icons.star.codePoint, tier: 'gold'),
+      Achievement(id: 'consistency_master', title: 'Consistency Master', description: 'Maintain a 80% monthly score', iconData: Icons.verified.codePoint, tier: 'elite'),
+      Achievement(id: 'hidden_beast', title: 'Beast Mode Unlocked', description: 'Log a set with weight over 100kg', iconData: Icons.bolt.codePoint, tier: 'elite', isHidden: true),
+      Achievement(id: 'seasonal_summer_2026', title: 'Summer Shred 2026', description: 'Log 15 workouts in June 2026', iconData: Icons.wb_sunny.codePoint, tier: 'gold', isSeasonal: true),
     ];
   }
 }

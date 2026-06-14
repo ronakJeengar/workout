@@ -165,6 +165,30 @@ class _AchievementBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool unlocked = achievement.isUnlocked;
+    final bool isSecret = achievement.isHidden && !unlocked;
+    
+    final displayTitle = isSecret ? 'SECRET' : achievement.title;
+    final displayIcon = isSecret 
+        ? Icons.lock_outline 
+        : IconData(achievement.iconData, fontFamily: 'MaterialIcons');
+
+    Color tierColor = Colors.white12;
+    if (unlocked) {
+      switch (achievement.tier) {
+        case 'bronze':
+          tierColor = const Color(0xFFCD7F32); // Bronze
+          break;
+        case 'silver':
+          tierColor = const Color(0xFFC0C0C0); // Silver
+          break;
+        case 'gold':
+          tierColor = const Color(0xFFFFD700); // Gold
+          break;
+        case 'elite':
+          tierColor = AppTheme.primaryLime; // Elite
+          break;
+      }
+    }
 
     return TweenAnimationBuilder(
       duration: const Duration(milliseconds: 600),
@@ -178,22 +202,22 @@ class _AchievementBadge extends StatelessWidget {
               height: 60,
               width: 60,
               decoration: BoxDecoration(
-                color: unlocked ? AppTheme.primaryLime.withAlpha(30) : Colors.white.withAlpha(5),
+                color: unlocked ? tierColor.withAlpha(25) : Colors.white.withAlpha(5),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: unlocked ? AppTheme.primaryLime : Colors.white10,
+                  color: unlocked ? tierColor : Colors.white10,
                   width: 2,
                 ),
               ),
               child: Icon(
-                IconData(achievement.iconData, fontFamily: 'MaterialIcons'),
-                color: unlocked ? AppTheme.primaryLime : Colors.white24,
-                size: 30,
+                displayIcon,
+                color: unlocked ? tierColor : Colors.white24,
+                size: 28,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              achievement.title.toUpperCase(),
+              displayTitle.toUpperCase(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 8,
@@ -201,6 +225,14 @@ class _AchievementBadge extends StatelessWidget {
                 color: unlocked ? Colors.white : Colors.white24,
               ),
             ),
+            if (achievement.isSeasonal)
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: Text(
+                  'SEASONAL',
+                  style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.orange),
+                ),
+              ),
           ],
         ),
       ),

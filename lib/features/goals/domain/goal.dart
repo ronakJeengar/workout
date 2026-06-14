@@ -70,6 +70,9 @@ class Achievement {
   final String description;
   final int iconData; // IconData.codePoint
   final DateTime? unlockedAt;
+  final String tier; // bronze, silver, gold, elite
+  final bool isHidden;
+  final bool isSeasonal;
 
   const Achievement({
     required this.id,
@@ -77,17 +80,28 @@ class Achievement {
     required this.description,
     required this.iconData,
     this.unlockedAt,
+    this.tier = 'bronze',
+    this.isHidden = false,
+    this.isSeasonal = false,
   });
 
   bool get isUnlocked => unlockedAt != null;
 
-  Achievement copyWith({DateTime? unlockedAt}) {
+  Achievement copyWith({
+    DateTime? unlockedAt,
+    String? tier,
+    bool? isHidden,
+    bool? isSeasonal,
+  }) {
     return Achievement(
       id: id,
       title: title,
       description: description,
       iconData: iconData,
       unlockedAt: unlockedAt ?? this.unlockedAt,
+      tier: tier ?? this.tier,
+      isHidden: isHidden ?? this.isHidden,
+      isSeasonal: isSeasonal ?? this.isSeasonal,
     );
   }
 
@@ -98,6 +112,9 @@ class Achievement {
       'description': description,
       'iconData': iconData,
       'unlockedAt': unlockedAt?.toIso8601String(),
+      'tier': tier,
+      'isHidden': isHidden,
+      'isSeasonal': isSeasonal,
     };
   }
 
@@ -108,6 +125,9 @@ class Achievement {
       description: json['description'] as String,
       iconData: json['iconData'] as int,
       unlockedAt: json['unlockedAt'] != null ? DateTime.parse(json['unlockedAt'] as String) : null,
+      tier: json['tier'] as String? ?? 'bronze',
+      isHidden: json['isHidden'] as bool? ?? false,
+      isSeasonal: json['isSeasonal'] as bool? ?? false,
     );
   }
 }
