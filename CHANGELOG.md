@@ -1,7 +1,9 @@
 # Changelog
 
 ## [1.0.0+1] - 2026-06-14
+
 ### Added
+
 - Complete localization for English, Spanish, and Hindi.
 - Isar database persistence for Workouts, Sessions, Programs, Goals, and Profiles.
 - Migration engine from SharedPreferences to Isar.

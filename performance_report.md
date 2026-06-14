@@ -14,6 +14,7 @@
 | Memory Footprint (Active Session) | < 250MB | 135MB | ✅ PASS |
 
 ## Notes
+
 - Isar database pagination significantly improved History View load times compared to SharedPreferences.
 - Startup time target met easily due to deferred Riverpod initializations.
 - No memory leaks detected during active session navigation cycles.

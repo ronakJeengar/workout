@@ -17,9 +17,11 @@
 | iOS Build | `flutter build ios --release` | ✅ SUCCESS |
 
 ## Artifacts Generated
+
 - `build/app/outputs/flutter-apk/app-release.apk`
 - `build/app/outputs/bundle/release/app-release.aab`
 - `build/ios/iphoneos/Runner.app`
 
 ## Checksum (APK)
+
 `SHA-256: 7f83b1e2... (simulated)`

@@ -9,7 +9,7 @@ This document defines the key performance indicators (KPIs) used to monitor stab
 ### Day 1 (D1) Retention
 
 * **Definition**: The percentage of unique users who return to the app and perform any interaction exactly 1 day (between 24 and 48 hours) after their first launch (Day 0).
-* **Formula**: 
+* **Formula**:
   $$\text{D1 Retention} = \frac{\text{Users active on Day 1}}{\text{Users who installed on Day 0}} \times 100$$
 * **Target**: $> 60\%$
 
