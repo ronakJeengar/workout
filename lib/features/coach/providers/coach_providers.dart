@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../progress/providers/progress_provider.dart';
 import '../../workout/providers/workout_providers.dart';
 import '../domain/coach_models.dart';
+import '../domain/adaptive_training_service.dart';
 
 final coachProvider = Provider<AsyncValue<List<CoachInsight>>>((ref) {
   final historyAsync = ref.watch(workoutHistoryProvider);
@@ -76,4 +77,56 @@ final recoveryScoreProvider = Provider<AsyncValue<RecoveryStatus>>((ref) {
       return const RecoveryStatus(score: 1.0, label: 'READY', description: 'Fully recovered and primed for peak performance.');
     }
   });
+});
+
+final adaptiveTrainingServiceProvider = Provider<AdaptiveTrainingService>((ref) {
+  return const AdaptiveTrainingService();
+});
+
+final adaptiveTrainingOutputProvider = Provider<AsyncValue<AdaptationOutput>>((ref) {
+  final historyAsync = ref.watch(workoutHistoryProvider);
+  final streakAsync = ref.watch(workoutStreakProvider);
+  final recoveryAsync = ref.watch(recoveryScoreProvider);
+
+  return historyAsync.when(
+    data: (history) => streakAsync.when(
+      data: (streak) => recoveryAsync.when(
+        data: (recovery) {
+          double prFrequency = 0.2;
+          if (history.isNotEmpty) {
+            final prs = history.where((s) => s.workout.exercises.any((e) => e.sets.any((set) => set.isCompleted && set.weight > 60))).length;
+            prFrequency = prs / history.length;
+          }
+          
+          int missedSessions = 0;
+          if (history.isNotEmpty) {
+            DateTime? prev;
+            for (final session in history.take(10)) {
+              if (prev != null) {
+                final diff = prev.difference(session.startTime).inDays;
+                if (diff > 4) missedSessions++;
+              }
+              prev = session.startTime;
+            }
+          }
+
+          final service = ref.read(adaptiveTrainingServiceProvider);
+          final output = service.analyze(
+            history: history,
+            streak: streak,
+            prFrequency: prFrequency,
+            missedSessions: missedSessions,
+            recoveryScore: recovery.score,
+          );
+          return AsyncValue.data(output);
+        },
+        loading: () => const AsyncValue.loading(),
+        error: (e, s) => AsyncValue.error(e, s),
+      ),
+      loading: () => const AsyncValue.loading(),
+      error: (e, s) => AsyncValue.error(e, s),
+    ),
+    loading: () => const AsyncValue.loading(),
+    error: (e, s) => AsyncValue.error(e, s),
+  );
 });
