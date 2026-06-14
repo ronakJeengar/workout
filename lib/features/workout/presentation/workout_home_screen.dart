@@ -9,12 +9,14 @@ import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/app_loading.dart';
-import '../../../features/coach/providers/coach_providers.dart';
+import '../../../features/coach/providers/coach_providers.dart' hide recoveryScoreProvider;
 import '../../../features/profile/providers/profile_providers.dart';
 import '../../workout/domain/exercise.dart';
 import '../../workout/domain/workout.dart';
 import '../../workout/domain/workout_set.dart';
 import '../providers/workout_providers.dart';
+import '../../daily_hub/domain/daily_recommendation.dart';
+import '../../daily_hub/providers/daily_hub_providers.dart';
 
 class WorkoutHomeScreen extends StatelessWidget {
   const WorkoutHomeScreen({super.key});
@@ -53,13 +55,15 @@ class WorkoutHomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(AppSizes.m),
+              padding: const EdgeInsets.all(AppSizes.m),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: const [
                   _GreetingSection(),
+                  SizedBox(height: AppSizes.l),
+                  _TodayIntelligenceCard(),
                   SizedBox(height: AppSizes.l),
                   _RecoverySection(),
                   SizedBox(height: AppSizes.m),
@@ -445,6 +449,238 @@ class _RecentActivitySection extends ConsumerWidget {
           ),
       loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
       error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+    );
+  }
+}
+
+class _TodayIntelligenceCard extends ConsumerWidget {
+  const _TodayIntelligenceCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final decisionAsync = ref.watch(dailyDecisionProvider);
+    final suggestionAsync = ref.watch(trainingSuggestionProvider);
+
+    return decisionAsync.when(
+      data: (recommendation) {
+        Color decisionColor;
+        String decisionText;
+        IconData decisionIcon;
+
+        switch (recommendation.decision) {
+          case TrainingDecision.train:
+            decisionColor = AppTheme.primaryLime;
+            decisionText = 'TRAIN';
+            decisionIcon = Icons.fitness_center_rounded;
+            break;
+          case TrainingDecision.lightDay:
+            decisionColor = Colors.orange;
+            decisionText = 'LIGHT DAY';
+            decisionIcon = Icons.bolt_rounded;
+            break;
+          case TrainingDecision.rest:
+            decisionColor = Colors.lightBlueAccent;
+            decisionText = 'REST';
+            decisionIcon = Icons.nights_stay_rounded;
+            break;
+        }
+
+        return AppCard(
+          showBorder: true,
+          padding: EdgeInsets.zero,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  decisionColor.withValues(alpha: 0.08),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            padding: const EdgeInsets.all(AppSizes.m),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.psychology_outlined, color: AppTheme.primaryLime, size: 20),
+                        const SizedBox(width: AppSizes.xs),
+                        Text(
+                          'TODAY\'S INTELLIGENCE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white.withAlpha(150),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.s, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: decisionColor.withValues(alpha: 0.15),
+                        border: Border.all(color: decisionColor.withValues(alpha: 0.3)),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(decisionIcon, color: decisionColor, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            decisionText,
+                            style: TextStyle(
+                              color: decisionColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 10,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSizes.m),
+                Text(
+                  recommendation.recommendedWorkoutType.toUpperCase(),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                if (recommendation.primaryMuscleGroup != 'None') ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'FOCUS: ${recommendation.primaryMuscleGroup.toUpperCase()}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSizes.m),
+                Text(
+                  recommendation.explanation,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white70,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.m),
+                const Divider(color: Colors.white10),
+                const SizedBox(height: AppSizes.s),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 16),
+                        const SizedBox(width: AppSizes.xs),
+                        const Text(
+                          'RECOVERY: ',
+                          style: TextStyle(fontSize: 10, color: Colors.white38, fontWeight: FontWeight.bold),
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final recAsync = ref.watch(recoveryScoreProvider);
+                            final recoveryVal = recAsync.maybeWhen(
+                              data: (status) => '${(status.score * 100).toInt()}%',
+                              orElse: () => '--%',
+                            );
+                            return Text(
+                              recoveryVal,
+                              style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.thumb_up_alt_rounded, color: AppTheme.primaryLime, size: 16),
+                        const SizedBox(width: AppSizes.xs),
+                        const Text(
+                          'CONFIDENCE: ',
+                          style: TextStyle(fontSize: 10, color: Colors.white38, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          '${recommendation.confidenceScore}%',
+                          style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSizes.m),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: decisionColor,
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: AppSizes.m),
+                    ),
+                    onPressed: () async {
+                      final suggestion = suggestionAsync.value;
+                      if (suggestion != null) {
+                        final active = ref.read(activeSessionProvider);
+                        if (active == null) {
+                          await ref.read(activeSessionProvider.notifier).startSession(suggestion);
+                        }
+                        if (context.mounted) {
+                          context.push('/session');
+                        }
+                      }
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.play_arrow_rounded),
+                        SizedBox(width: 4),
+                        Text(
+                          'START RECOMMENDED WORKOUT',
+                          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const AppCard(
+        showBorder: true,
+        child: SizedBox(
+          height: 150,
+          child: Center(
+            child: AppLoading(),
+          ),
+        ),
+      ),
+      error: (error, stack) => AppCard(
+        showBorder: true,
+        child: SizedBox(
+          height: 100,
+          child: Center(
+            child: Text('Error loading intelligence: $error', style: const TextStyle(color: Colors.redAccent)),
+          ),
+        ),
+      ),
     );
   }
 }
