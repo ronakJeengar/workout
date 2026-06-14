@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/program.dart';
+import '../domain/weekly_split_generator.dart';
 import '../data/program_repository.dart';
 
 final programRepositoryProvider = Provider<ProgramRepository>((ref) {
@@ -119,10 +120,33 @@ class ProgramListNotifier extends AsyncNotifier<List<Program>> {
       return repo.getPrograms();
     });
   }
+
+  Future<void> generateWeeklySplit({
+    required String goal,
+    required double recoveryScore,
+    required List<String> availableWorkoutIds,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(programRepositoryProvider);
+      final generator = ref.read(weeklySplitGeneratorProvider);
+      final program = generator.generate(
+        goal: goal,
+        recoveryScore: recoveryScore,
+        availableWorkoutIds: availableWorkoutIds,
+      );
+      await repo.createProgram(program);
+      return repo.getPrograms();
+    });
+  }
 }
 
 final programListProvider = AsyncNotifierProvider<ProgramListNotifier, List<Program>>(() {
   return ProgramListNotifier();
+});
+
+final weeklySplitGeneratorProvider = Provider<WeeklySplitGenerator>((ref) {
+  return const WeeklySplitGenerator();
 });
 
 final selectedProgramProvider = StateProvider<Program?>((ref) => null);
