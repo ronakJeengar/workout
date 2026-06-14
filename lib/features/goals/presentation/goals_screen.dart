@@ -162,6 +162,31 @@ class _AchievementBadge extends StatelessWidget {
   final Achievement achievement;
   const _AchievementBadge({required this.achievement});
 
+  IconData _getAchievementIcon(String id) {
+    switch (id) {
+      case 'first_workout':
+        return Icons.fitness_center;
+      case 'streak_7':
+        return Icons.local_fire_department;
+      case 'sets_50':
+        return Icons.layers;
+      case 'sessions_100':
+        return Icons.emoji_events;
+      case 'first_program':
+        return Icons.assignment;
+      case 'pr_10':
+        return Icons.star;
+      case 'consistency_master':
+        return Icons.verified;
+      case 'hidden_beast':
+        return Icons.bolt;
+      case 'seasonal_summer_2026':
+        return Icons.wb_sunny;
+      default:
+        return Icons.emoji_events;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool unlocked = achievement.isUnlocked;
@@ -170,7 +195,7 @@ class _AchievementBadge extends StatelessWidget {
     final displayTitle = isSecret ? 'SECRET' : achievement.title;
     final displayIcon = isSecret 
         ? Icons.lock_outline 
-        : IconData(achievement.iconData, fontFamily: 'MaterialIcons');
+        : _getAchievementIcon(achievement.id);
 
     Color tierColor = Colors.white12;
     if (unlocked) {
