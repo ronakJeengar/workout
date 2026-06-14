@@ -10,6 +10,7 @@ import '../features/programs/presentation/programs_screen.dart';
 import '../features/progress/presentation/progress_dashboard_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/workout/domain/workout_session.dart';
+import '../features/coach/presentation/coach_screen.dart';
 import '../features/workout/presentation/workout_home_screen.dart';
 import '../features/workout/presentation/workout_detail_screen.dart';
 import '../features/workout/presentation/create_workout_screen.dart';
@@ -107,6 +108,14 @@ final router = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const SettingsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
+      ),
+    ),
+    GoRoute(
+      path: '/coach',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const CoachScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
       ),
     ),

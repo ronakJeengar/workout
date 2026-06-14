@@ -5,10 +5,6 @@ import 'package:workout/features/fitness_intelligence/warmup/warmup_generator.da
 import 'package:workout/features/fitness_intelligence/nutrition/nutrition_engine.dart';
 import 'package:workout/features/fitness_intelligence/exercise_execution/exercise_execution_guide.dart';
 import 'package:workout/features/profile/domain/user_profile.dart';
-import 'package:workout/features/workout/domain/workout.dart';
-import 'package:workout/features/workout/domain/workout_session.dart';
-import 'package:workout/features/workout/domain/workout_set.dart';
-import 'package:workout/features/workout/domain/exercise.dart';
 
 void main() {
   group('BodyGoalEngine Tests', () {

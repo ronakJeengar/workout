@@ -8,6 +8,9 @@ import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_loading.dart';
 import '../domain/program.dart';
 import '../providers/program_providers.dart';
+import '../../coach/providers/coach_providers.dart';
+import '../../coach/domain/fatigue_model.dart';
+import '../../../core/theme.dart';
 
 class ProgramsScreen extends ConsumerWidget {
   const ProgramsScreen({super.key});
@@ -37,9 +40,12 @@ class ProgramsScreen extends ConsumerWidget {
 
           return ListView.builder(
             padding: const EdgeInsets.all(AppSizes.m),
-            itemCount: programs.length,
+            itemCount: programs.length + 1,
             itemBuilder: (context, index) {
-              final program = programs[index];
+              if (index == 0) {
+                return _buildContextualSuggestion(context, ref);
+              }
+              final program = programs[index - 1];
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSizes.m),
                 child: AppCard(
@@ -117,5 +123,77 @@ class ProgramsScreen extends ConsumerWidget {
     if (confirmed == true) {
       await ref.read(programListProvider.notifier).deleteProgram(program.id);
     }
+  }
+
+  Widget _buildContextualSuggestion(BuildContext context, WidgetRef ref) {
+    final fatigueAsync = ref.watch(fatigueProvider);
+    return fatigueAsync.maybeWhen(
+      data: (fatigue) {
+        if (fatigue.fatigueScore < 0.3) {
+          if (fatigue.fatigueScore == 0.0) return const SizedBox.shrink(); // No history yet
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSizes.m),
+            child: AppCard(
+              showBorder: true,
+              padding: const EdgeInsets.all(AppSizes.m),
+              child: InkWell(
+                onTap: () => context.push('/coach'),
+                borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+                child: Row(
+                  children: [
+                    const Icon(Icons.rocket_launch_rounded, color: AppTheme.primaryLime),
+                    const SizedBox(width: AppSizes.m),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('READY FOR ADVANCED TRAINING', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppTheme.primaryLime)),
+                          Text('Your fatigue is low (${(fatigue.fatigueScore*100).toInt()}%). Great window to start a hypertrophy or strength program block.', style: TextStyle(fontSize: 10, color: Colors.white.withAlpha(200))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        
+        if (fatigue.recoveryState == FatigueState.overtrained || fatigue.recoveryState == FatigueState.high) {
+          final isOvertrained = fatigue.recoveryState == FatigueState.overtrained;
+          final color = isOvertrained ? const Color(0xFFEF4444) : const Color(0xFFF97316);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSizes.m),
+            child: AppCard(
+              showBorder: true,
+              padding: const EdgeInsets.all(AppSizes.m),
+              child: InkWell(
+                onTap: () => context.push('/coach'),
+                borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: color),
+                    const SizedBox(width: AppSizes.m),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(isOvertrained ? 'WARNING: DELOAD SUGGESTED' : 'ADAPTIVE TRAINING RECOMMENDATION', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: color)),
+                          Text(isOvertrained 
+                            ? 'Critical fatigue levels detected. Consider selecting a deload/recovery program block instead of high-intensity programs.'
+                            : 'Elevated fatigue levels detected. Keep training program intensity low/moderate this week.', style: TextStyle(fontSize: 10, color: Colors.white.withAlpha(200))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+      orElse: () => const SizedBox.shrink(),
+    );
   }
 }

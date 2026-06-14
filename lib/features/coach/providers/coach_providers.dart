@@ -3,6 +3,13 @@ import '../../progress/providers/progress_provider.dart';
 import '../../workout/providers/workout_providers.dart';
 import '../domain/coach_models.dart';
 import '../domain/adaptive_training_service.dart';
+import '../../goals/providers/goal_providers.dart';
+import '../../settings/providers/settings_provider.dart';
+import '../../profile/providers/profile_providers.dart';
+import '../domain/coach_recommendation.dart';
+import '../domain/fatigue_model.dart';
+import '../data/coach_engine.dart';
+import '../data/ai_service.dart';
 
 final coachProvider = Provider<AsyncValue<List<CoachInsight>>>((ref) {
   final historyAsync = ref.watch(workoutHistoryProvider);
@@ -128,5 +135,63 @@ final adaptiveTrainingOutputProvider = Provider<AsyncValue<AdaptationOutput>>((r
     ),
     loading: () => const AsyncValue.loading(),
     error: (e, s) => AsyncValue.error(e, s),
+  );
+});
+
+/// Exposes the core CoachEngine service.
+final coachEngineProvider = Provider<CoachEngine>((ref) {
+  return const CoachEngine();
+});
+
+/// Calculates fatigue score and recovery state from history and progress metrics.
+final fatigueProvider = FutureProvider<FatigueModel>((ref) async {
+  final history = await ref.watch(workoutHistoryProvider.future);
+  final overview = ref.watch(progressOverviewProvider).value;
+
+  if (overview == null) {
+    return const FatigueModel(
+      fatigueScore: 0.0,
+      recoveryState: FatigueState.low,
+      contributingFactors: ['Awaiting progress overview calculation...'],
+    );
+  }
+
+  const engine = CoachRuleEngine();
+  return engine.calculateFatigue(history: history, overview: overview);
+});
+
+/// Evaluates all coaching rules and returns deterministic recommendations.
+final recommendationProvider = FutureProvider<List<CoachRecommendation>>((ref) async {
+  final history = await ref.watch(workoutHistoryProvider.future);
+  final overview = ref.watch(progressOverviewProvider).value;
+  final goals = await ref.watch(goalListProvider.future);
+  final settings = ref.watch(settingsProvider);
+  final fatigue = await ref.watch(fatigueProvider.future);
+
+  if (overview == null) {
+    return const [];
+  }
+
+  final engine = ref.read(coachEngineProvider);
+  return engine.evaluate(
+    history: history,
+    overview: overview,
+    goals: goals,
+    settings: settings,
+    fatigue: fatigue,
+  );
+});
+
+/// Enhances the rule-based recommendations with motivational text if enabled.
+final dailyCoachProvider = FutureProvider<List<CoachRecommendation>>((ref) async {
+  final recs = await ref.watch(recommendationProvider.future);
+  final profile = ref.watch(profileProvider);
+
+  final statsSummary = 'Weight: ${profile.weightKg}kg, training age: ${profile.trainingAgeYears} years, level: ${profile.trainingLevel}.';
+  const aiService = AiService();
+  
+  return aiService.enhanceRecommendations(
+    recommendations: recs,
+    userStatsSummary: statsSummary,
   );
 });

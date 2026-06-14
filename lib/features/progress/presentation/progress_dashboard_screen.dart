@@ -1,6 +1,7 @@
 import 'package:workout/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme.dart';
 import '../../../shared/constants/app_sizes.dart';
 import '../../../shared/utils/unit_formatter.dart';
@@ -57,6 +58,13 @@ class _ProgressDashboardScreenState extends ConsumerState<ProgressDashboardScree
               SliverAppBar(
                 expandedHeight: 180,
                 pinned: true,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.psychology_outlined),
+                    tooltip: 'AI Coach',
+                    onPressed: () => context.push('/coach'),
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: BoxDecoration(
@@ -87,6 +95,30 @@ class _ProgressDashboardScreenState extends ConsumerState<ProgressDashboardScree
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeroStats(overview),
+                      const SizedBox(height: AppSizes.l),
+                      GestureDetector(
+                        onTap: () => context.push('/coach'),
+                        child: AppCard(
+                          showBorder: true,
+                          padding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.psychology_outlined, color: AppTheme.primaryLime),
+                              const SizedBox(width: AppSizes.m),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('AI COACH RECOMMENDATIONS', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppTheme.primaryLime)),
+                                    Text('View fatigue score, consistency score ring, and real-time workout recommendations.', style: TextStyle(fontSize: 9, color: Colors.white.withAlpha(150))),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right, color: Colors.white30, size: 20),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: AppSizes.l),
                       const _BodyGoalStatusIndicator(),
                       const SizedBox(height: AppSizes.xl),

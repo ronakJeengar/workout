@@ -44,6 +44,11 @@ class WorkoutHomeScreen extends StatelessWidget {
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.psychology_outlined),
+                tooltip: 'AI Coach',
+                onPressed: () => context.push('/coach'),
+              ),
+              IconButton(
                 icon: const Icon(Icons.calendar_month_outlined),
                 onPressed: () => context.push('/calendar'),
               ),
@@ -204,23 +209,35 @@ class _CoachInsightSection extends ConsumerWidget {
       data: (insights) {
         if (insights.isEmpty) return const SizedBox.shrink();
         final insight = insights.first;
-        return AppCard(
-          padding: const EdgeInsets.all(AppSizes.m),
-          showBorder: true,
-          child: Row(
-            children: [
-              const Icon(Icons.psychology_outlined, color: AppTheme.primaryLime, size: 24),
-              const SizedBox(width: AppSizes.m),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(insight.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                    Text(insight.message, style: const TextStyle(fontSize: 10, color: Colors.white70)),
-                  ],
+        return GestureDetector(
+          onTap: () => context.push('/coach'),
+          child: AppCard(
+            padding: const EdgeInsets.all(AppSizes.m),
+            showBorder: true,
+            child: Row(
+              children: [
+                const Icon(Icons.psychology_outlined, color: AppTheme.primaryLime, size: 24),
+                const SizedBox(width: AppSizes.m),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(insight.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                      Text(insight.message, style: const TextStyle(fontSize: 10, color: Colors.white70)),
+                      const SizedBox(height: AppSizes.xs),
+                      Text(
+                        'TAP TO OPEN AI COACH →',
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryLime.withAlpha(200),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
