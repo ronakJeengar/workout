@@ -1,0 +1,91 @@
+{
+  "@@locale": "en",
+  "appTitle": "Workout App",
+  "dashboard": "DASHBOARD",
+  "managePrograms": "MANAGE PROGRAMS",
+  "motivation": "MOTIVATION",
+  "trainingPrograms": "TRAINING PROGRAMS",
+  "yourWorkouts": "YOUR WORKOUTS",
+  "sessions": "SESSIONS",
+  "streak": "STREAK",
+  "volume": "VOLUME",
+  "newWorkout": "NEW WORKOUT",
+  "finishWorkout": "FINISH WORKOUT",
+  "restFinished": "REST FINISHED!",
+  "settings": "SETTINGS",
+  "appearance": "APPEARANCE",
+  "units": "UNITS",
+  "workoutsPerWeek": "WORKOUTS / WEEK",
+  "consistency": "CONSISTENCY",
+  "totalVolume": "TOTAL VOLUME",
+  "trainingCalendar": "TRAINING CALENDAR",
+  "newGoal": "NEW GOAL",
+  "goalType": "GOAL TYPE",
+  "myProfile": "MY PROFILE",
+  "createProgram": "CREATE PROGRAM",
+  "duplicate": "DUPLICATE",
+  "delete": "DELETE",
+  "deleteProgramTitle": "DELETE PROGRAM?",
+  "cancel": "CANCEL",
+  "renameProgram": "RENAME PROGRAM",
+  "save": "SAVE",
+  "createWorkoutFirst": "CREATE A WORKOUT FIRST!",
+  "chooseWorkout": "CHOOSE WORKOUT",
+  "progress": "PROGRESS",
+  "lifetimeVolume": "LIFETIME VOLUME",
+  "monthlyScore": "MONTHLY SCORE",
+  "noData": "NO DATA",
+  "defaultRestTimer": "Default Rest Timer",
+  "addExercise": "Add Exercise",
+  "createWorkout": "Create Workout",
+  "saveWorkout": "Save Workout",
+  "workoutHistory": "Workout History",
+  "goalsAchievements": "GOALS & ACHIEVEMENTS",
+  "stayOnTrack": "STAY ON TRACK",
+  "noActiveSession": "No active session.",
+  "workoutSummary": "Workout Summary",
+  "seconds": "seconds",
+  "workoutsCount": "{count} WORKOUTS",
+  "@workoutsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newProgram": "NEW PROGRAM",
+  "excellentProgress": "EXCELLENT PROGRESS!",
+  "stayDisciplined": "STAY DISCIPLINED.",
+  "dayStreak": "{streak} DAY STREAK",
+  "@dayStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "keepMomentum": "KEEP THE MOMENTUM GOING!",
+  "startJourney": "START YOUR JOURNEY TODAY",
+  "setGoal": "SET GOAL",
+  "areYouSureDelete": "Are you sure you want to delete \"{name}\"?",
+  "@areYouSureDelete": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unknownWorkout": "Unknown Workout",
+  "error": "Error: {error}",
+  "@error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "language": "Language",
+  "english": "English",
+  "spanish": "Spanish",
+  "hindi": "Hindi"
+}

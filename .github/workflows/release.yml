@@ -1,0 +1,56 @@
+name: Release Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: flutter analyze
+        run: flutter analyze
+
+      - name: Run Migration Safety Checks
+        run: flutter test test/migration/migration_test.dart
+
+      - name: Run Performance Benchmarks & Regression Tests
+        run: flutter test test/performance_regression_test.dart
+
+      - name: Run General Widget and Unit Tests
+        run: flutter test
+
+      - name: build apk
+        run: flutter build apk --release
+
+      - name: build appbundle
+        run: flutter build appbundle
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab

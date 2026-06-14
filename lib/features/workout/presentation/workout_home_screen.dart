@@ -1,0 +1,450 @@
+import 'package:workout/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/theme.dart';
+import '../../../shared/constants/app_sizes.dart';
+import '../../../shared/utils/date_formatter.dart';
+import '../../../shared/widgets/app_card.dart';
+import '../../../shared/widgets/app_empty_state.dart';
+import '../../../shared/widgets/app_error_widget.dart';
+import '../../../shared/widgets/app_loading.dart';
+import '../../../features/coach/providers/coach_providers.dart';
+import '../../../features/profile/providers/profile_providers.dart';
+import '../../workout/domain/exercise.dart';
+import '../../workout/domain/workout.dart';
+import '../../workout/domain/workout_set.dart';
+import '../providers/workout_providers.dart';
+
+class WorkoutHomeScreen extends StatelessWidget {
+  const WorkoutHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: true,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(AppLocalizations.of(context)!.dashboard, 
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  letterSpacing: 2,
+                )
+              ),
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(left: AppSizes.m, bottom: AppSizes.m),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.calendar_month_outlined),
+                onPressed: () => context.push('/calendar'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.person_outline),
+                onPressed: () => context.push('/profile'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => context.push('/settings'),
+              ),
+            ],
+          ),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(AppSizes.m),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _GreetingSection(),
+                  SizedBox(height: AppSizes.l),
+                  _RecoverySection(),
+                  SizedBox(height: AppSizes.m),
+                  _CoachInsightSection(),
+                  SizedBox(height: AppSizes.l),
+                  _SectionHeader(title: 'MOMENTUM'),
+                  SizedBox(height: AppSizes.s),
+                  _StreakSection(),
+                  SizedBox(height: AppSizes.l),
+                  _ProgramsButton(),
+                  SizedBox(height: AppSizes.l),
+                  _SectionHeader(title: 'RETURNING USER QUICK-START'),
+                ],
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: _ReturningUserQuickStart()),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+              child: _SectionHeader(title: 'YOUR WORKOUTS'),
+            ),
+          ),
+          const _WorkoutsSection(),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+              child: _SectionHeader(title: 'RECENT ACTIVITY'),
+            ),
+          ),
+          const _RecentActivitySection(),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.black,
+        onPressed: () => context.push('/create-workout'),
+        icon: const Icon(Icons.add, fontWeight: FontWeight.bold),
+        label: Text(AppLocalizations.of(context)!.newWorkout, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(title, style: TextStyle(
+      fontSize: 11, 
+      fontWeight: FontWeight.w900, 
+      color: Colors.white.withAlpha(100),
+      letterSpacing: 1.2,
+    ));
+  }
+}
+
+class _GreetingSection extends ConsumerWidget {
+  const _GreetingSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    final hour = DateTime.now().hour;
+    String greeting = 'GOOD MORNING';
+    if (hour >= 12 && hour < 17) greeting = 'GOOD AFTERNOON';
+    if (hour >= 17) greeting = 'GOOD EVENING';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(greeting, style: TextStyle(
+          fontSize: 12, 
+          fontWeight: FontWeight.w900, 
+          color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 1.5,
+        )),
+        Text('${profile.name.toUpperCase()}.', style: Theme.of(context).textTheme.headlineLarge),
+      ],
+    );
+  }
+}
+
+class _RecoverySection extends ConsumerWidget {
+  const _RecoverySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recoveryAsync = ref.watch(recoveryScoreProvider);
+    return recoveryAsync.maybeWhen(
+      data: (status) => AppCard(
+        child: Row(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: status.score,
+                  strokeWidth: 4,
+                  backgroundColor: Colors.white10,
+                  color: status.score > 0.6 ? AppTheme.primaryLime : Colors.orange,
+                ),
+                Text('${(status.score * 100).toInt()}%', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10)),
+              ],
+            ),
+            const SizedBox(width: AppSizes.m),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(status.label, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                  Text(status.description, style: const TextStyle(fontSize: 10, color: Colors.white38)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _CoachInsightSection extends ConsumerWidget {
+  const _CoachInsightSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coachAsync = ref.watch(coachProvider);
+    return coachAsync.maybeWhen(
+      data: (insights) {
+        if (insights.isEmpty) return const SizedBox.shrink();
+        final insight = insights.first;
+        return AppCard(
+          padding: const EdgeInsets.all(AppSizes.m),
+          showBorder: true,
+          child: Row(
+            children: [
+              const Icon(Icons.psychology_outlined, color: AppTheme.primaryLime, size: 24),
+              const SizedBox(width: AppSizes.m),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(insight.title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                    Text(insight.message, style: const TextStyle(fontSize: 10, color: Colors.white70)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _StreakSection extends ConsumerWidget {
+  const _StreakSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final streakAsync = ref.watch(workoutStreakProvider);
+    return streakAsync.maybeWhen(
+      data: (streak) => AppCard(
+        padding: const EdgeInsets.all(AppSizes.m),
+        child: Row(
+          children: [
+            const Icon(Icons.local_fire_department, color: Colors.orange, size: 32),
+            const SizedBox(width: AppSizes.m),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$streak DAY STREAK', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                  Text(streak > 0 ? 'KEEP THE MOMENTUM GOING!' : 'START YOUR JOURNEY TODAY', 
+                    style: TextStyle(fontSize: 11, color: Colors.white.withAlpha(150), fontWeight: FontWeight.bold)
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _ProgramsButton extends StatelessWidget {
+  const _ProgramsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      showBorder: true,
+      padding: EdgeInsets.zero,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+        leading: const Icon(Icons.assignment_outlined, color: AppTheme.primaryLime),
+        title: Text(AppLocalizations.of(context)!.managePrograms, style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+        subtitle: const Text('4–8 WEEK TRAINING PLANS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white38)),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push('/programs'),
+      ),
+    );
+  }
+}
+
+class _ReturningUserQuickStart extends ConsumerWidget {
+  const _ReturningUserQuickStart();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyAsync = ref.watch(workoutHistoryProvider);
+    return historyAsync.maybeWhen(
+      data: (history) {
+        if (history.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.m),
+            child: Text('LOG A WORKOUT TO ENABLE QUICK REPEAT.', style: TextStyle(fontSize: 10, color: Colors.white24, fontWeight: FontWeight.bold)),
+          );
+        }
+        final lastSession = history.first;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSizes.m),
+          child: AppCard(
+            showBorder: true,
+            padding: const EdgeInsets.all(AppSizes.m),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('WELCOME BACK', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.primaryLime, letterSpacing: 1.5)),
+                      Text('REPEAT LAST WORKOUT', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(lastSession.workout.name.toUpperCase(), style: const TextStyle(fontSize: 11, color: Colors.white54)),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final active = ref.read(activeSessionProvider);
+                    if (active == null) {
+                      await ref.read(activeSessionProvider.notifier).startSession(lastSession.workout);
+                    }
+                    if (context.mounted) {
+                      context.push('/session');
+                    }
+                  },
+                  icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                  label: const Text('START'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _WorkoutsSection extends ConsumerWidget {
+  const _WorkoutsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final workoutsAsync = ref.watch(workoutListProvider);
+
+    return workoutsAsync.when(
+      data: (workouts) => workouts.isEmpty
+        ? SliverToBoxAdapter(
+            child: Column(
+              children: [
+                const AppEmptyState(
+                  icon: Icons.fitness_center,
+                  title: 'No workouts yet',
+                  subtitle: 'Build your first training plan',
+                ),
+                const SizedBox(height: AppSizes.s),
+                ElevatedButton.icon(
+                  onPressed: () => _loadSampleTemplates(ref),
+                  icon: const Icon(Icons.download_done),
+                  label: const Text('LOAD SAMPLE TEMPLATES'),
+                ),
+              ],
+            ),
+          )
+        : SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final workout = workouts[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.xs),
+                  child: AppCard(
+                    showBorder: true,
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+                      title: Text(workout.name.toUpperCase(), 
+                        style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)
+                      ),
+                      subtitle: Text('${workout.exercises.length} EXERCISES', 
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary.withAlpha(180), fontSize: 11, fontWeight: FontWeight.bold)
+                      ),
+                      trailing: const Icon(Icons.play_arrow_rounded, color: Colors.white70),
+                      onTap: () => context.push('/workout', extra: workout.id),
+                    ),
+                  ),
+                );
+              },
+              childCount: workouts.length,
+            ),
+          ),
+      loading: () => const SliverFillRemaining(child: AppLoading()),
+      error: (err, _) => SliverFillRemaining(child: AppErrorWidget(message: 'Error loading workouts')),
+    );
+  }
+
+  void _loadSampleTemplates(WidgetRef ref) {
+    final notifier = ref.read(workoutListProvider.notifier);
+    notifier.addWorkout(
+      Workout(
+        id: 'sample_upper',
+        name: 'Upper Body Split',
+        exercises: [
+          WorkoutExercise(
+            exercise: const Exercise(id: 'bench_press', name: 'Bench Press', muscleGroup: 'Chest'),
+            sets: [
+              const WorkoutSet(reps: 10, weight: 60.0, isCompleted: false),
+            ],
+          ),
+        ],
+      ),
+    );
+    notifier.addWorkout(
+      Workout(
+        id: 'sample_lower',
+        name: 'Lower Body Split',
+        exercises: [
+          WorkoutExercise(
+            exercise: const Exercise(id: 'barbell_squat', name: 'Barbell Squat', muscleGroup: 'Legs'),
+            sets: [
+              const WorkoutSet(reps: 10, weight: 80.0, isCompleted: false),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentActivitySection extends ConsumerWidget {
+  const _RecentActivitySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyAsync = ref.watch(workoutHistoryProvider);
+    return historyAsync.when(
+      data: (history) => history.isEmpty
+        ? const SliverToBoxAdapter(child: SizedBox.shrink())
+        : SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final session = history[index];
+                return ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.history_rounded, size: 20),
+                  title: Text(session.workout.name),
+                  subtitle: Text(DateFormatter.formatDate(session.startTime)),
+                  trailing: const Icon(Icons.chevron_right, size: 16),
+                );
+              },
+              childCount: history.length > 3 ? 3 : history.length,
+            ),
+          ),
+      loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+      error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+    );
+  }
+}
