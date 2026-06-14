@@ -17,6 +17,8 @@ import '../../workout/domain/workout_set.dart';
 import '../providers/workout_providers.dart';
 import '../../daily_hub/domain/daily_recommendation.dart';
 import '../../daily_hub/providers/daily_hub_providers.dart';
+import '../../fitness_intelligence/providers/fitness_intelligence_providers.dart';
+import '../../../shared/assets/fitness_illustrations.dart';
 
 class WorkoutHomeScreen extends StatelessWidget {
   const WorkoutHomeScreen({super.key});
@@ -64,6 +66,8 @@ class WorkoutHomeScreen extends StatelessWidget {
                   _GreetingSection(),
                   SizedBox(height: AppSizes.l),
                   _TodayIntelligenceCard(),
+                  SizedBox(height: AppSizes.l),
+                  _TodayPlanCard(),
                   SizedBox(height: AppSizes.l),
                   _RecoverySection(),
                   SizedBox(height: AppSizes.m),
@@ -681,6 +685,222 @@ class _TodayIntelligenceCard extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TodayPlanCard extends ConsumerWidget {
+  const _TodayPlanCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bodyGoalAsync = ref.watch(bodyGoalProvider);
+    final nutritionAsync = ref.watch(nutritionProvider);
+    final decisionAsync = ref.watch(dailyDecisionProvider);
+
+    return bodyGoalAsync.when(
+      data: (goalRec) {
+        final nutrition = nutritionAsync.value;
+        final decision = decisionAsync.value;
+
+        if (nutrition == null || decision == null) {
+          return const SizedBox.shrink();
+        }
+
+        return AppCard(
+          showBorder: true,
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+                color: Colors.white.withValues(alpha: 0.02),
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_awesome_rounded, color: AppTheme.primaryLime, size: 16),
+                    const SizedBox(width: AppSizes.xs),
+                    Text(
+                      'UNIFIED TODAY PLAN (${goalRec.mode.name.replaceAll('BodyGoalMode.', '').toUpperCase()})',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white.withAlpha(150),
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSizes.m),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: AppSizes.m,
+                      crossAxisSpacing: AppSizes.m,
+                      childAspectRatio: 1.8,
+                      children: [
+                        _TodayPlanMetric(
+                          icon: FitnessIllustrations.getMuscleIcon(decision.primaryMuscleGroup),
+                          title: 'WORKOUT TYPE',
+                          value: decision.recommendedWorkoutType,
+                          color: AppTheme.primaryLime,
+                        ),
+                        _TodayPlanMetric(
+                          icon: FitnessIllustrations.getFoodIcon('protein'),
+                          title: 'DAILY CALORIES',
+                          value: '${nutrition.calories.toInt()} kcal',
+                          color: Colors.orangeAccent,
+                        ),
+                        _TodayPlanMetric(
+                          icon: FitnessIllustrations.getRecoveryIcon('rest'),
+                          title: 'WARMUP PREVIEW',
+                          value: decision.decision == TrainingDecision.rest
+                              ? 'Active stretching'
+                              : '3 dynamic warmup sets',
+                          color: Colors.lightBlueAccent,
+                        ),
+                        _TodayPlanMetric(
+                          icon: Icons.track_changes_rounded,
+                          title: 'PROGRESSION GOAL',
+                          value: goalRec.trainingSplitSuggestion,
+                          color: Colors.purpleAccent,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSizes.m),
+                    const Divider(color: Colors.white10),
+                    const SizedBox(height: AppSizes.s),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _MacroBadge(
+                          label: 'PROTEIN',
+                          value: '${nutrition.proteinGrams.toInt()}g',
+                          color: Colors.redAccent,
+                          icon: FitnessIllustrations.getFoodIcon('protein'),
+                        ),
+                        _MacroBadge(
+                          label: 'CARBS',
+                          value: '${nutrition.carbsGrams.toInt()}g',
+                          color: Colors.amber,
+                          icon: FitnessIllustrations.getFoodIcon('carb'),
+                        ),
+                        _MacroBadge(
+                          label: 'FATS',
+                          value: '${nutrition.fatsGrams.toInt()}g',
+                          color: Colors.greenAccent,
+                          icon: FitnessIllustrations.getFoodIcon('fat'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _TodayPlanMetric extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color color;
+
+  const _TodayPlanMetric({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSizes.s),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 12),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white.withAlpha(120),
+                    letterSpacing: 0.8,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MacroBadge extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+
+  const _MacroBadge({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 14),
+        const SizedBox(width: 4),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 8, color: Colors.white38, fontWeight: FontWeight.bold)),
+            Text(value, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white70)),
+          ],
+        ),
+      ],
     );
   }
 }

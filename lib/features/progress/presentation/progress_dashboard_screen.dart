@@ -13,6 +13,8 @@ import '../../workout/providers/workout_providers.dart';
 import '../domain/progress_overview.dart';
 import '../providers/progress_provider.dart';
 import 'widgets/volume_chart.dart';
+import '../../fitness_intelligence/providers/fitness_intelligence_providers.dart';
+import '../../fitness_intelligence/body_goal_engine/body_goal_engine.dart';
 
 class ProgressDashboardScreen extends ConsumerStatefulWidget {
   const ProgressDashboardScreen({super.key});
@@ -85,6 +87,8 @@ class _ProgressDashboardScreenState extends ConsumerState<ProgressDashboardScree
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeroStats(overview),
+                      const SizedBox(height: AppSizes.l),
+                      const _BodyGoalStatusIndicator(),
                       const SizedBox(height: AppSizes.xl),
                       _buildSectionHeader('30-DAY VOLUME TREND'),
                       const SizedBox(height: AppSizes.m),
@@ -237,6 +241,61 @@ class _ProgressDashboardScreenState extends ConsumerState<ProgressDashboardScree
           Text(highlight.value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: highlight.color ?? Colors.white)),
         ],
       ),
+    );
+  }
+}
+
+class _BodyGoalStatusIndicator extends ConsumerWidget {
+  const _BodyGoalStatusIndicator();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bodyGoalAsync = ref.watch(bodyGoalProvider);
+
+    return bodyGoalAsync.maybeWhen(
+      data: (BodyGoalRecommendation rec) => AppCard(
+        showBorder: true,
+        padding: const EdgeInsets.all(AppSizes.m),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSizes.s),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryLime.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.bolt_rounded, color: AppTheme.primaryLime, size: 28),
+            ),
+            const SizedBox(width: AppSizes.m),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'BODY GOAL ENGINE STATUS',
+                    style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppTheme.primaryLime, letterSpacing: 1.0),
+                  ),
+                  Text(
+                    rec.mode.name.replaceAll('BodyGoalMode.', '').toUpperCase().replaceAll('GAIN', ' GAIN').replaceAll('LOSS', ' LOSS'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Intensity target: ${rec.intensityRecommendation}',
+                    style: const TextStyle(fontSize: 10, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    'Split: ${rec.trainingSplitSuggestion}',
+                    style: const TextStyle(fontSize: 10, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }
