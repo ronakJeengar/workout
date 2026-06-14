@@ -76,6 +76,22 @@ class WorkoutSessionScreen extends ConsumerWidget {
                         onUpdate: (updated) => ref.read(activeSessionProvider.notifier).updateSet(exerciseIndex, setIndex, updated),
                       );
                     }),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+                      child: OutlinedButton.icon(
+                        onPressed: () => ref.read(activeSessionProvider.notifier).addSet(exerciseIndex),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('QUICK ADD SET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                          side: BorderSide(color: AppTheme.primaryLime.withAlpha(80)),
+                          foregroundColor: AppTheme.primaryLime,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
                     const Divider(height: 32, indent: AppSizes.m, endIndent: AppSizes.m),
                   ],
                 );
