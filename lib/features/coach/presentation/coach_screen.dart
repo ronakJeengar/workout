@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/constants/app_sizes.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_loading.dart';
@@ -328,6 +329,13 @@ class CoachScreen extends ConsumerWidget {
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: AppSizes.xl)),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppTheme.primaryLime,
+        foregroundColor: Colors.black,
+        onPressed: () => context.push('/auto-program'),
+        icon: const Icon(Icons.auto_awesome, fontWeight: FontWeight.bold),
+        label: const Text('GENERATE TRAINING PLAN', style: TextStyle(fontWeight: FontWeight.w900)),
       ),
     );
   }

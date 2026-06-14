@@ -27,6 +27,13 @@ class ProgramsScreen extends ConsumerWidget {
             letterSpacing: 2,
           )
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: 'AI Program Generator',
+            onPressed: () => context.push('/auto-program'),
+          ),
+        ],
       ),
       body: programsAsync.when(
         data: (programs) {
